@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Algorithmes de tri</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body onload="runSorts()">
+    <div style="max-width: 800px">
+      <canvas id="sortingChart"></canvas>
+    </div>
+
+    <script>
+      function generateRandomArray(N) {
+        const array = [];
+        for (let i = 0; i < N; i++) {
+          array.push(Math.floor(Math.random() * 10000));
+        }
+        return array;
+      }
+
+      function bubbleSort(array) {
+        const len = array.length;
+        let swapped;
+        do {
+          swapped = false;
+          for (let i = 0; i < len - 1; i++) {
+            if (array[i] > array[i + 1]) {
+              const temp = array[i];
+              array[i] = array[i + 1];
+              array[i + 1] = temp;
+              swapped = true;
+            }
+          }
+        } while (swapped);
+      }
+
+      function insertionSort(array) {
+        const len = array.length;
+
+        for (let i = 1; i < len; i++) {
+          const elementCourant = array[i];
+          let j = i - 1;
+
+          while (j >= 0 && array[j] > elementCourant) {
+            array[j + 1] = array[j];
+            j = j - 1;
+          }
+
+          array[j + 1] = elementCourant;
+        }
+      }
+
+      function mergeSort(array) {
+        if (array.length <= 1) {
+          return array;
+        }
+
+        const middle = Math.floor(array.length / 2);
+        const left = array.slice(0, middle);
+        const right = array.slice(middle);
+
+        const leftSorted = mergeSort(left);
+        const rightSorted = mergeSort(right);
+
+        return merge(leftSorted, rightSorted);
+      }
+
+      function merge(left, right) {
+        let result = [];
+        let leftIndex = 0;
+        let rightIndex = 0;
+
+        while (leftIndex < left.length && rightIndex < right.length) {
+          if (left[leftIndex] < right[rightIndex]) {
+            result.push(left[leftIndex]);
+            leftIndex++;
+          } else {
+            result.push(right[rightIndex]);
+            rightIndex++;
+          }
+        }
+
+        return result
+          .concat(left.slice(leftIndex))
+          .concat(right.slice(rightIndex));
+      }
+
+      function quickSort(array) {
+        if (array.length <= 1) {
+          return array;
+        }
+
+        const pivot = array[0];
+        const left = [];
+        const right = [];
+
+        for (let i = 1; i < array.length; i++) {
+          if (array[i] < pivot) {
+            left.push(array[i]);
+          } else {
+            right.push(array[i]);
+          }
+        }
+
+        return quickSort(left).concat(pivot, quickSort(right));
+      }
+
+      function countingSort(array) {
+        const min = Math.min(...array);
+        const max = Math.max(...array);
+        const countArray = new Array(max - min + 1).fill(0);
+
+        for (let num of array) {
+          countArray[num - min]++;
+        }
+
+        let sortedArray = [];
+
+        for (let i = 0; i < countArray.length; i++) {
+          while (countArray[i] > 0) {
+            sortedArray.push(i + min);
+            countArray[i]--;
+          }
+        }
+
+        return sortedArray;
+      }
+
+      function measureExecutionTime(func, array) {
+        const startTime = Date.now();
+        func(array);
+        const endTime = Date.now();
+        return endTime - startTime;
+      }
+
+      function calculateComplexity(N) {
+        return {
+          bubbleSort: N ** 2,
+          insertionSort: N ** 2,
+          mergeSort: N * Math.log2(N),
+          quickSort: N ** 2,
+          countingSort: N,
+        };
+      }
+
+      function runSorts() {
+        const N = Math.floor(Math.random() * 4000);
+        console.log(N);
+        const step = 50;
+        const repetitions = N / step;
+        const labels = [];
+        const bubbleSortTimes = [];
+        const insertionSortTimes = [];
+        const mergeSortTimes = [];
+        const quickSortTimes = [];
+        const countingSortTimes = [];
+
+        let subArrayBubbleSort = [];
+        let subArrayInsertionSort = [];
+        let subArrayMergeSort = [];
+        let subArrayQuickSort = [];
+        let subArrayCountingSort = [];
+
+        for (let i = 1; i <= repetitions; i++) {
+          subArrayBubbleSort = subArrayBubbleSort.concat(
+            generateRandomArray(step)
+          );
+          subArrayInsertionSort = subArrayInsertionSort.concat(
+            subArrayBubbleSort.slice()
+          );
+          subArrayMergeSort = subArrayMergeSort.concat(
+            subArrayBubbleSort.slice()
+          );
+          subArrayQuickSort = subArrayQuickSort.concat(
+            subArrayBubbleSort.slice()
+          );
+          subArrayCountingSort = subArrayCountingSort.concat(
+            subArrayBubbleSort.slice()
+          );
+
+          const bubbleSortTime = measureExecutionTime(
+            () => bubbleSort(subArrayBubbleSort),
+            subArrayBubbleSort
+          );
+          const insertionSortTime = measureExecutionTime(
+            () => insertionSort(subArrayInsertionSort),
+            subArrayInsertionSort
+          );
+          const mergeSortTime = measureExecutionTime(
+            () => mergeSort(subArrayMergeSort),
+            subArrayMergeSort
+          );
+          const quickSortTime = measureExecutionTime(
+            () => quickSort(subArrayQuickSort),
+            subArrayQuickSort
+          );
+          const countingSortTime = measureExecutionTime(
+            () => countingSort(subArrayCountingSort),
+            subArrayCountingSort
+          );
+
+          labels.push(i * step);
+          bubbleSortTimes.push(bubbleSortTime);
+          insertionSortTimes.push(insertionSortTime);
+          mergeSortTimes.push(mergeSortTime);
+          quickSortTimes.push(quickSortTime);
+          countingSortTimes.push(countingSortTime);
+        }
+
+        const complexities = calculateComplexity(N);
+        console.log(
+          `N = ${N}: Tri bulle - Temps: ${bubbleSortTimes.reduce(
+            (a, b) => a + b,
+            0
+          )} ms - Complexité: O(${complexities.bubbleSort})`
+        );
+        console.log(
+          `N = ${N}: Tri insertion - Temps: ${insertionSortTimes.reduce(
+            (a, b) => a + b,
+            0
+          )} ms - Complexité: O(${complexities.insertionSort})`
+        );
+        console.log(
+          `N = ${N}: Tri fusion - Temps: ${mergeSortTimes.reduce(
+            (a, b) => a + b,
+            0
+          )} ms - Complexité: O(${complexities.mergeSort})`
+        );
+        console.log(
+          `N = ${N}: Tri rapide - Temps: ${quickSortTimes.reduce(
+            (a, b) => a + b,
+            0
+          )} ms - Complexité: O(${complexities.quickSort})`
+        );
+        console.log(
+          `N = ${N}: Tri casier - Temps: ${countingSortTimes.reduce(
+            (a, b) => a + b,
+            0
+          )} ms - Complexité: O(${complexities.countingSort})`
+        );
+
+        updateChart(
+          labels,
+          bubbleSortTimes,
+          insertionSortTimes,
+          mergeSortTimes,
+          quickSortTimes,
+          countingSortTimes
+        );
+      }
+
+      function updateChart(
+        labels,
+        bubbleSortTimes,
+        insertionSortTimes,
+        mergeSortTimes,
+        quickSortTimes,
+        countingSortTimes
+      ) {
+        const ctx = document.getElementById("sortingChart").getContext("2d");
+
+        if (window.myChart) {
+          window.myChart.destroy();
+        }
+
+        window.myChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Tri bulle",
+                data: cumulativeTimes(bubbleSortTimes),
+                borderColor: "rgba(255, 99, 132, 1)",
+                borderWidth: 1,
+                fill: false,
+              },
+              {
+                label: "Tri insertion",
+                data: cumulativeTimes(insertionSortTimes),
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+                fill: false,
+              },
+              {
+                label: "Tri fusion",
+                data: cumulativeTimes(mergeSortTimes),
+                borderColor: "rgba(255, 206, 86, 1)",
+                borderWidth: 1,
+                fill: false,
+              },
+              {
+                label: "Tri rapide",
+                data: cumulativeTimes(quickSortTimes),
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 1,
+                fill: false,
+              },
+              {
+                label: "Tri casier",
+                data: cumulativeTimes(countingSortTimes),
+                borderColor: "rgba(153, 102, 255, 1)",
+                borderWidth: 1,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: "linear",
+                position: "bottom",
+                min: 0,
+              },
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      function cumulativeTimes(times) {
+    let cumulative = 0;
+    return times.map((time) => {
+        cumulative += time;
+        return cumulative;
+    });
+}
+    </script>
+  </body>
+</html>
